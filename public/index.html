@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NexusDrop - P2P File Transfer</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      min-height: 100vh;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 600px;
+      width: 100%;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .logo {
+      font-size: 2.5rem;
+      font-weight: bold;
+      background: linear-gradient(90deg, #00d9ff, #00ff88);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 10px;
+    }
+
+    .tagline {
+      color: #8892b0;
+      font-size: 0.9rem;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 20px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .card-title {
+      font-size: 1.1rem;
+      margin-bottom: 16px;
+      color: #ccd6f6;
+    }
+
+    .room-controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-weight: 500;
+    }
+
+    .btn-primary {
+      background: linear-gradient(90deg, #00d9ff, #00ff88);
+      color: #1a1a2e;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 20px rgba(0, 217, 255, 0.3);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-danger {
+      background: #ff4444;
+      color: #fff;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      padding: 12px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff;
+      font-size: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    input[type="text"]::placeholder {
+      color: #8892b0;
+      text-transform: none;
+      letter-spacing: normal;
+    }
+
+    input[type="text"]:focus {
+      outline: none;
+      border-color: #00d9ff;
+    }
+
+    .room-info {
+      text-align: center;
+      padding: 20px;
+    }
+
+    .room-code {
+      font-size: 2.5rem;
+      font-weight: bold;
+      letter-spacing: 8px;
+      color: #00ff88;
+      margin: 16px 0;
+    }
+
+    .room-status {
+      color: #8892b0;
+      margin-bottom: 16px;
+    }
+
+    .drop-zone {
+      border: 2px dashed rgba(255, 255, 255, 0.3);
+      border-radius: 12px;
+      padding: 40px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .drop-zone:hover, .drop-zone.dragover {
+      border-color: #00d9ff;
+      background: rgba(0, 217, 255, 0.1);
+    }
+
+    .drop-zone-icon {
+      font-size: 3rem;
+      margin-bottom: 16px;
+    }
+
+    .drop-zone-text {
+      color: #ccd6f6;
+      margin-bottom: 8px;
+    }
+
+    .drop-zone-hint {
+      color: #8892b0;
+      font-size: 0.85rem;
+    }
+
+    #fileInput {
+      display: none;
+    }
+
+    .transfer-list {
+      margin-top: 16px;
+    }
+
+    .transfer-item {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .transfer-icon {
+      font-size: 1.5rem;
+    }
+
+    .transfer-info {
+      flex: 1;
+    }
+
+    .transfer-name {
+      font-weight: 500;
+      margin-bottom: 4px;
+      word-break: break-all;
+    }
+
+    .transfer-progress {
+      width: 100%;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .transfer-progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #00d9ff, #00ff88);
+      transition: width 0.2s ease;
+    }
+
+    .transfer-status {
+      font-size: 0.8rem;
+      color: #8892b0;
+    }
+
+    .status-log {
+      max-height: 200px;
+      overflow-y: auto;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 8px;
+      padding: 12px;
+      font-family: monospace;
+      font-size: 0.85rem;
+    }
+
+    .status-entry {
+      padding: 4px 0;
+      color: #8892b0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .status-entry:last-child {
+      border-bottom: none;
+    }
+
+    .status-time {
+      color: #00d9ff;
+      margin-right: 8px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .peers-count {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(0, 255, 136, 0.2);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      color: #00ff88;
+    }
+
+    .peers-dot {
+      width: 8px;
+      height: 8px;
+      background: #00ff88;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .received-files {
+      margin-top: 16px;
+    }
+
+    .received-file {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(0, 255, 136, 0.1);
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 8px;
+    }
+
+    .received-file-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn-download {
+      background: #00ff88;
+      color: #1a1a2e;
+      padding: 8px 16px;
+      font-size: 0.9rem;
+    }
+
+    footer {
+      margin-top: auto;
+      padding-top: 40px;
+      text-align: center;
+      color: #8892b0;
+      font-size: 0.85rem;
+    }
+
+    footer a {
+      color: #00d9ff;
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">⚡ NexusDrop</div>
+      <p class="tagline">Peer-to-peer file transfer • No cloud • Direct connection</p>
+    </header>
+
+    <!-- Connection Section -->
+    <div class="card" id="connectionCard">
+      <h2 class="card-title">Start Sharing</h2>
+      <div class="room-controls">
+        <button class="btn btn-primary" id="createRoomBtn">Create Room</button>
+      </div>
+      <div class="input-group">
+        <input type="text" id="roomCodeInput" placeholder="Enter room code" maxlength="6">
+        <button class="btn btn-secondary" id="joinRoomBtn">Join</button>
+      </div>
+    </div>
+
+    <!-- Room Section -->
+    <div class="card hidden" id="roomCard">
+      <div class="room-info">
+        <p class="room-status">Share this code with others:</p>
+        <div class="room-code" id="roomCodeDisplay">------</div>
+        <div class="peers-count" id="peersCount">
+          <span class="peers-dot"></span>
+          <span id="peersCountText">0 peers connected</span>
+        </div>
+      </div>
+      <div style="text-align: center; margin-top: 16px;">
+        <button class="btn btn-danger" id="leaveRoomBtn">Leave Room</button>
+      </div>
+    </div>
+
+    <!-- File Transfer Section -->
+    <div class="card hidden" id="transferCard">
+      <h2 class="card-title">Transfer Files</h2>
+      <div class="drop-zone" id="dropZone">
+        <div class="drop-zone-icon">📁</div>
+        <p class="drop-zone-text">Drop files here or click to select</p>
+        <p class="drop-zone-hint">Files are sent directly to connected peers</p>
+      </div>
+      <input type="file" id="fileInput" multiple>
+
+      <div class="transfer-list" id="transferList"></div>
+
+      <div class="received-files" id="receivedFiles"></div>
+    </div>
+
+    <!-- Status Section -->
+    <div class="card">
+      <h2 class="card-title">Status Log</h2>
+      <div class="status-log" id="statusLog">
+        <div class="status-entry">
+          <span class="status-time">[--:--:--]</span>
+          <span>Initializing NexusDrop...</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p>NexusDrop P2P • <a href="https://github.com/Tenebriscs/NexusDrop-P2P" target="_blank">GitHub</a></p>
+    <p style="margin-top: 8px;">Your files never touch a server. Pure peer-to-peer transfer.</p>
+  </footer>
+
+  <script src="/nexusdrop.js"></script>
+  <script>
+    // Initialize NexusDrop
+    const client = new NexusDropClient();
+    let connectedPeers = 0;
+
+    // DOM Elements
+    const connectionCard = document.getElementById('connectionCard');
+    const roomCard = document.getElementById('roomCard');
+    const transferCard = document.getElementById('transferCard');
+    const createRoomBtn = document.getElementById('createRoomBtn');
+    const joinRoomBtn = document.getElementById('joinRoomBtn');
+    const leaveRoomBtn = document.getElementById('leaveRoomBtn');
+    const roomCodeInput = document.getElementById('roomCodeInput');
+    const roomCodeDisplay = document.getElementById('roomCodeDisplay');
+    const peersCountText = document.getElementById('peersCountText');
+    const statusLog = document.getElementById('statusLog');
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const transferList = document.getElementById('transferList');
+    const receivedFiles = document.getElementById('receivedFiles');
+
+    // Status logging
+    function logStatus(message) {
+      const now = new Date();
+      const time = now.toTimeString().split(' ')[0];
+      const entry = document.createElement('div');
+      entry.className = 'status-entry';
+      entry.innerHTML = `<span class="status-time">[${time}]</span><span>${message}</span>`;
+      statusLog.appendChild(entry);
+      statusLog.scrollTop = statusLog.scrollHeight;
+    }
+
+    // Update peers count
+    function updatePeersCount() {
+      connectedPeers = client.getConnectedPeersCount();
+      peersCountText.textContent = `${connectedPeers} peer${connectedPeers !== 1 ? 's' : ''} connected`;
+    }
+
+    // Show room UI
+    function showRoom(roomCode) {
+      connectionCard.classList.add('hidden');
+      roomCard.classList.remove('hidden');
+      transferCard.classList.remove('hidden');
+      roomCodeDisplay.textContent = roomCode;
+    }
+
+    // Hide room UI
+    function hideRoom() {
+      connectionCard.classList.remove('hidden');
+      roomCard.classList.add('hidden');
+      transferCard.classList.add('hidden');
+      roomCodeDisplay.textContent = '------';
+      roomCodeInput.value = '';
+      transferList.innerHTML = '';
+      receivedFiles.innerHTML = '';
+      connectedPeers = 0;
+      updatePeersCount();
+    }
+
+    // Format file size
+    function formatSize(bytes) {
+      if (bytes === 0) return '0 Bytes';
+      const k = 1024;
+      const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    // Create transfer item
+    function createTransferItem(fileId, fileName, fileSize, direction) {
+      const item = document.createElement('div');
+      item.className = 'transfer-item';
+      item.id = `transfer-${fileId}`;
+      item.innerHTML = `
+        <span class="transfer-icon">${direction === 'sending' ? '⬆️' : '⬇️'}</span>
+        <div class="transfer-info">
+          <div class="transfer-name">${fileName}</div>
+          <div class="transfer-progress">
+            <div class="transfer-progress-bar" style="width: 0%"></div>
+          </div>
+          <div class="transfer-status">${direction === 'sending' ? 'Sending' : 'Receiving'}... 0%</div>
+        </div>
+      `;
+      transferList.appendChild(item);
+      return item;
+    }
+
+    // Update transfer progress
+    function updateTransferProgress(fileId, current, total, direction) {
+      const item = document.getElementById(`transfer-${fileId}`);
+      if (!item) return;
+
+      const percent = Math.round((current / total) * 100);
+      const progressBar = item.querySelector('.transfer-progress-bar');
+      const status = item.querySelector('.transfer-status');
+
+      progressBar.style.width = `${percent}%`;
+      status.textContent = `${direction === 'sending' ? 'Sending' : 'Receiving'}... ${percent}% (${formatSize(current)} / ${formatSize(total)})`;
+
+      if (percent >= 100) {
+        status.textContent = `Complete! (${formatSize(total)})`;
+      }
+    }
+
+    // Add received file
+    function addReceivedFile(file) {
+      const url = URL.createObjectURL(file.blob);
+      const item = document.createElement('div');
+      item.className = 'received-file';
+      item.innerHTML = `
+        <div class="received-file-info">
+          <span>📄</span>
+          <span>${file.name} (${formatSize(file.size)})</span>
+        </div>
+        <a href="${url}" download="${file.name}" class="btn btn-download">Download</a>
+      `;
+      receivedFiles.appendChild(item);
+    }
+
+    // Event handlers
+    client.onStatusChange = logStatus;
+
+    client.onError = (context, error) => {
+      logStatus(`Error: ${context} - ${error.message || error}`);
+    };
+
+    client.onPeerConnected = (peerId) => {
+      updatePeersCount();
+    };
+
+    client.onPeerDisconnected = (peerId) => {
+      updatePeersCount();
+    };
+
+    client.onTransferProgress = (fileId, current, total, direction) => {
+      updateTransferProgress(fileId, current, total, direction);
+    };
+
+    client.onFileReceived = (file) => {
+      addReceivedFile(file);
+      logStatus(`File received: ${file.name}`);
+    };
+
+    // Button handlers
+    createRoomBtn.addEventListener('click', () => {
+      client.createRoom();
+    });
+
+    joinRoomBtn.addEventListener('click', () => {
+      const code = roomCodeInput.value.trim();
+      if (code.length === 6) {
+        client.joinRoom(code);
+      } else {
+        logStatus('Please enter a valid 6-character room code');
+      }
+    });
+
+    roomCodeInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        joinRoomBtn.click();
+      }
+    });
+
+    leaveRoomBtn.addEventListener('click', () => {
+      client.leaveRoom();
+      hideRoom();
+      logStatus('Left the room');
+    });
+
+    // File handling
+    dropZone.addEventListener('click', () => fileInput.click());
+
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropZone.classList.add('dragover');
+    });
+
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.classList.remove('dragover');
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+      handleFiles(e.dataTransfer.files);
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      handleFiles(e.target.files);
+      fileInput.value = '';
+    });
+
+    function handleFiles(files) {
+      if (connectedPeers === 0) {
+        logStatus('No peers connected. Wait for someone to join.');
+        return;
+      }
+
+      Array.from(files).forEach(file => {
+        const fileId = client.generateFileId();
+        createTransferItem(fileId, file.name, file.size, 'sending');
+        client.sendFile(file);
+      });
+    }
+
+    // Listen for room events
+    const originalHandleMessage = client.handleSignalingMessage.bind(client);
+    client.handleSignalingMessage = (message) => {
+      originalHandleMessage(message);
+
+      if (message.type === 'room-created' || message.type === 'room-joined') {
+        showRoom(message.roomId);
+      }
+    };
+
+    // Connect to signaling server
+    client.connect()
+      .then(() => {
+        logStatus('Connected to NexusDrop server');
+      })
+      .catch((error) => {
+        logStatus('Failed to connect to server');
+      });
+
+    // Periodically update peers count
+    setInterval(updatePeersCount, 2000);
+  </script>
+</body>
+</html>
