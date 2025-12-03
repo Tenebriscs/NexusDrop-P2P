@@ -27,7 +27,7 @@ NexusDrop separates the **Signaling Phase** (handshake) from the **Data Transfer
 ### 1. The Architecture
 Unlike traditional apps like WeTransfer, the server in NexusDrop is **ephemeral**. It is only used to exchange "connection details" (SDP & ICE Candidates). Once the peers find each other, the server is no longer involved.
 
-```mermaid
+
 sequenceDiagram
     participant Sender
     participant SignalServer as Signaling Server (WebSocket)
