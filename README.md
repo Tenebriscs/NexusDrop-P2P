@@ -2,18 +2,11 @@
 
 > **Secure, Serverless, Peer-to-Peer File Transfer Protocol**
 
-![License](https://img.shields.io/badge/License-MIT-blue.svg)
+![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)
 ![Status](https://img.shields.io/badge/Status-Prototype-orange.svg)
 ![Tech](https://img.shields.io/badge/Tech-WebRTC%20|%20Node.js%20|%20React-green.svg)
 
 **NexusDrop** is a decentralized file sharing application that enables users to send large files directly between browsers without storing any data on an intermediate server. By leveraging **WebRTC**, it creates a secure, private data tunnel for real-time transfers.
-
----
-
-## 📸 Demo
-
-> *[Place a GIF or Screenshot of the file transfer process here]*
-> *(Suggestion: Show the connection handshake and a file progress bar filling up)*
 
 ---
 
