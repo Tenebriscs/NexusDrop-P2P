@@ -12,8 +12,7 @@
 
 ## 📸 Demo
 
-> *[Place a GIF or Screenshot of the file transfer process here]*
-> *(Suggestion: Show the connection handshake and a file progress bar filling up)*
+<img width="2816" height="1536" alt="nexusdrop" src="https://github.com/user-attachments/assets/d6b503f3-c3b7-42e9-bf82-3b48ad88a187" />
 
 ---
 
