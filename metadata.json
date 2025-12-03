@@ -1,8 +1,0 @@
-{
-  "name": "NexusDrop P2P",
-  "description": "Serverless, encrypted peer-to-peer file transfer system using WebRTC and Gemini-powered file insights.",
-  "requestFramePermissions": [
-    "camera",
-    "microphone"
-  ]
-}
