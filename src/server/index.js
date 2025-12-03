@@ -193,12 +193,24 @@ function sendToPeer(peerId, message) {
 }
 
 function generateRoomCode() {
-  // Generate a 6-character alphanumeric room code
+  // Generate a 6-character alphanumeric room code with collision detection
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let code = '';
-  for (let i = 0; i < 6; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  let code;
+  let attempts = 0;
+  const maxAttempts = 100;
+
+  do {
+    code = '';
+    for (let i = 0; i < 6; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    attempts++;
+  } while (rooms.has(code) && attempts < maxAttempts);
+
+  if (attempts >= maxAttempts) {
+    throw new Error('Unable to generate unique room code');
   }
+
   return code;
 }
 

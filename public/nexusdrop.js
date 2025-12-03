@@ -10,7 +10,6 @@ class NexusDropClient {
     this.ws = null;
     this.peerConnections = new Map();
     this.dataChannels = new Map();
-    this.pendingFiles = new Map();
     this.receivingFiles = new Map();
 
     this.config = {
@@ -21,6 +20,7 @@ class NexusDropClient {
     };
 
     this.chunkSize = 16384; // 16KB chunks for file transfer
+    this.fileIdLength = 36; // Fixed length for file ID in binary transfer
     this.onStatusChange = null;
     this.onFileReceived = null;
     this.onTransferProgress = null;
@@ -268,11 +268,10 @@ class NexusDropClient {
         this.handleError('Error parsing data channel message', error);
       }
     } else {
-      // Binary chunk data - extract fileId from first 36 bytes (UUID)
-      const view = new DataView(data);
-      const fileIdBytes = new Uint8Array(data, 0, 36);
+      // Binary chunk data - extract fileId from first bytes (fixed length)
+      const fileIdBytes = new Uint8Array(data, 0, this.fileIdLength);
       const fileId = new TextDecoder().decode(fileIdBytes);
-      const chunkData = data.slice(36);
+      const chunkData = data.slice(this.fileIdLength);
 
       const fileInfo = this.receivingFiles.get(fileId);
       if (fileInfo) {
@@ -339,9 +338,14 @@ class NexusDropClient {
     fileReader.onload = (e) => {
       const chunkData = e.target.result;
       const fileIdBytes = new TextEncoder().encode(fileId);
-      const combined = new Uint8Array(36 + chunkData.byteLength);
-      combined.set(fileIdBytes, 0);
-      combined.set(new Uint8Array(chunkData), 36);
+
+      // Ensure fileId is exactly fileIdLength bytes (pad or truncate if needed)
+      const paddedFileId = new Uint8Array(this.fileIdLength);
+      paddedFileId.set(fileIdBytes.slice(0, this.fileIdLength), 0);
+
+      const combined = new Uint8Array(this.fileIdLength + chunkData.byteLength);
+      combined.set(paddedFileId, 0);
+      combined.set(new Uint8Array(chunkData), this.fileIdLength);
 
       channels.forEach(channel => {
         if (channel.readyState === 'open') {
